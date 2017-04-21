@@ -1,11 +1,18 @@
-module Main where
-import Monad
+{-# LANGUAGE ExistentialQuantification #-}
+
+module Main 
+    (
+    )
+    where
+
+import Control.Monad
 import Control.Monad.Error
 import System.Environment
 import Text.ParserCombinators.Parsec
 import Data.Array
-import IO hiding (try)
+import System.IO                     as IO hiding (try)
 import Data.IORef
+
 
 main :: IO ()
 main = do args <- getArgs
@@ -410,10 +417,6 @@ until_ pred prompt action = do
      then return ()
      else action result >> until_ pred prompt action
 
-runRepl :: IO ()
-runRepl = nullEnv >>= until_ (== "quit") (readPrompt "Lisp>>> ") . evalAndPrint
-
-
 type Env = IORef [(String, IORef LispVal)]
 
 nullEnv :: IO Env
@@ -476,8 +479,3 @@ primitiveBindings = nullEnv >>= (flip bindVars $ map makePrimitiveFunc primitive
 makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
 makeNormalFunc = makeFunc Nothing
 makeVarargs = makeFunc . Just . showVal
-
-
-
-
-
