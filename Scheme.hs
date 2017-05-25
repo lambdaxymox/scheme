@@ -2,6 +2,7 @@
 
 module Main 
     (
+        main,
     )
     where
 
@@ -198,22 +199,31 @@ eval env val@(Number _) = return val
 eval env val@(Bool _) = return val
 eval env (Atom id) = getVar env id
 eval env (List [Atom "quote", val]) = return val
-eval env (List [Atom "if", pred, conseq, alt]) = 
-    do result <- eval env pred
-       case result of
-         Bool False -> eval env alt
-         otherwise -> eval env conseq
+eval env (List [Atom "if", pred, conseq, alt]) = do 
+    result <- eval env pred
+    case result of
+        Bool False -> eval env alt
+        otherwise -> eval env conseq
 eval env (List [Atom "set!", Atom var, form]) =
     eval env form >>= setVar env var
 eval env (List [Atom "define", Atom var, form]) =
     eval env form >>= defineVar env var
-eval env (List (Atom func : args)) = mapM (eval env) args >>= liftThrows . apply func
+--eval env (List (Atom func : args)) = mapM (eval env) args >>= liftThrows . apply func
 eval env badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
 eval env (List (function : args)) = do 
     func <- eval env function
     argVals <- mapM (eval env) args
     apply func argVals
-
+eval env (List (Atom "define" : List (Atom var : params) : body)) =
+     makeNormalFunc env params body >>= defineVar env var
+eval env (List (Atom "define" : DottedList (Atom var : params) varargs : body)) =
+     makeVarArgs varargs env params body >>= defineVar env var
+eval env (List (Atom "lambda" : List params : body)) =
+     makeNormalFunc env params body
+eval env (List (Atom "lambda" : DottedList params varargs : body)) =
+     makeVarArgs varargs env params body
+eval env (List (Atom "lambda" : varargs@(Atom _) : body)) =
+     makeVarArgs varargs env [] body
 
 
 apply :: LispVal -> [LispVal] -> IOThrowsError LispVal
@@ -452,12 +462,12 @@ defineVar :: Env -> String -> LispVal -> IOThrowsError LispVal
 defineVar envRef var value = do 
     alreadyDefined <- liftIO $ isBound envRef var 
     if alreadyDefined 
-       then setVar envRef var value >> return value
-       else liftIO $ do 
-          valueRef <- newIORef value
-          env <- readIORef envRef
-          writeIORef envRef ((var, valueRef) : env)
-          return value
+        then setVar envRef var value >> return value
+        else liftIO $ do 
+            valueRef <- newIORef value
+            env <- readIORef envRef
+            writeIORef envRef ((var, valueRef) : env)
+            return value
 
 
 bindVars :: Env -> [(String, LispVal)] -> IO Env
@@ -476,6 +486,18 @@ primitiveBindings :: IO Env
 primitiveBindings = nullEnv >>= (flip bindVars $ map makePrimitiveFunc primitives)
     where makePrimitiveFunc (var, func) = (var, PrimitiveFunc func)
 
+makeFunc :: Monad m => Maybe String 
+                    -> Env 
+                    -> [LispVal] 
+                    -> [LispVal] 
+                    -> m LispVal
 makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
+
+makeNormalFunc :: Env -> [LispVal] -> [LispVal] -> ErrorT LispError IO LispVal
 makeNormalFunc = makeFunc Nothing
-makeVarargs = makeFunc . Just . showVal
+
+makeVarArgs :: LispVal -> Env 
+                       -> [LispVal] 
+                       -> [LispVal] 
+                       -> ErrorT LispError IO LispVal
+makeVarArgs = makeFunc . Just . showVal
