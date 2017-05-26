@@ -9,6 +9,7 @@ import System.Environment
 import Control.Monad
 import Numeric
 import Scheme.Env
+import Scheme.Types
 
 
 parseExpr :: Parser LispVal
