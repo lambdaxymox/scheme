@@ -8,7 +8,7 @@ import Text.ParserCombinators.Parsec hiding (spaces)
 import System.Environment
 import Control.Monad
 import Numeric
-import Scheme.LispVal
+import Scheme.Env
 
 
 parseExpr :: Parser LispVal
