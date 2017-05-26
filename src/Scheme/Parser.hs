@@ -1,6 +1,7 @@
 module Scheme.Parser
     (
         readExpr,
+        parseNumber,
     )
     where
 
@@ -16,6 +17,19 @@ data LispVal = Atom String
              | Number Integer
              | String String
              | Bool Bool
+
+instance Show LispVal where
+    show (String contents) = "\"" ++ contents ++ "\""
+    show (Atom name) = name
+    show (Number contents) = show contents
+    show (Bool True) = "#t"
+    show (Bool False) = "#f"
+    show (List contents) = "(" ++ unwordsList contents ++ ")"
+    show (DottedList head tail) = "(" ++ unwordsList head ++ " . " ++ show tail ++ ")"
+
+
+unwordsList :: [LispVal] -> String
+unwordsList = unwords . map show
 
 escapedChars :: String
 escapedChars = "\"\n\r\t\\\'"
@@ -34,13 +48,13 @@ escapedChar = oneOf escapedChars
 
 readExpr :: String -> String
 readExpr input = case parse parseExpr "lisp" input of
-    Left err -> "No match: " ++ show err
-    Right _  -> "Found value"
+    Left err  -> "No match: " ++ show err
+    Right val -> "Found value: " ++ show val
 
 parseExpr :: Parser LispVal
 parseExpr =  parseAtom
+         <|> parseNumber 
          <|> parseString
-         <|> parseNumber
          <|> parseQuoted
          <|> do char '('
                 x <- try parseList <|> parseDottedList
@@ -49,9 +63,9 @@ parseExpr =  parseAtom
 
 parseString :: Parser LispVal
 parseString = do
-    char '"'
+    char '\"'
     x <- many (escapedChar <|> nonEscapedChar)
-    char '"'
+    char '\"'
     return $ String x
 
 parseAtom :: Parser LispVal
@@ -67,16 +81,34 @@ parseAtom = do
 parseNumber :: Parser LispVal
 parseNumber = do
     prefix <- numberPrefix <|> string ""
-    digits <- many1 digit
-    return $ case prefix of
-        ""   -> Number . read $ digits
-        "#b" -> Number . fst . head . readBin $ digits
-        "#o" -> Number . fst . head . readOct $ digits
-        "#d" -> Number . read $ digits
-        "#x" -> Number . fst . head . readHex $ digits
+    case prefix of
+        ""   -> liftM (Number . read) decDigits
+        "#b" -> liftM (Number . fst . head . readBin) $ binDigits
+        "#o" -> liftM (Number . fst . head . readOct) $ octDigits
+        "#d" -> liftM (Number . read) decDigits
+        "#x" -> liftM (Number . fst . head . readHex) $ hexDigits
+            
+
+hexDigits :: Parser String
+hexDigits = many1 hexDigit
+
+octDigits :: Parser String
+octDigits = many1 octDigit
+
+decDigits :: Parser String
+decDigits = many1 digit
+
+binDigit :: Parser Char
+binDigit = oneOf "01"
+
+binDigits :: Parser String
+binDigits = many1 binDigit
 
 numberPrefix :: Parser String
-numberPrefix = char '#' >>= \ch1 -> oneOf "bodx" >>= \ch2 -> return [ch1,ch2]
+numberPrefix = do -- char '#' >>= \ch1 -> oneOf "bodx" >>= \ch2 -> return [ch1,ch2]
+    ch1 <- char '#'
+    ch2 <- oneOf "bodx"
+    return [ch1, ch2]
 
 readBin :: ReadS Integer
 readBin = readInt 2 isBinaryDigit binConvert
