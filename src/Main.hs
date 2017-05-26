@@ -9,7 +9,7 @@ import Scheme.Parser
 import Scheme.Eval
 import Scheme.LispVal
 import Text.ParserCombinators.Parsec
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Monad
 
 

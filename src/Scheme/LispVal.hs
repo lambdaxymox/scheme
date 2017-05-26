@@ -8,7 +8,7 @@ module Scheme.LispVal
     )
     where
 
-import Control.Monad.Error
+import Control.Monad.Except
 import Text.ParserCombinators.Parsec
 
 
@@ -51,9 +51,11 @@ instance Show LispError where
 unwordsList :: [LispVal] -> String
 unwordsList = unwords . map show
 
+{-
 instance Error LispError where
      noMsg = Default "An error has occurred"
      strMsg = Default
+-}
 
 type ThrowsError = Either LispError
 
