@@ -9,12 +9,17 @@ import Scheme.Parser
 import Scheme.Eval
 import Scheme.LispVal
 import Text.ParserCombinators.Parsec
+import Control.Monad.Error
+import Control.Monad
 
 
-readExpr :: String -> LispVal
+readExpr :: String -> ThrowsError LispVal
 readExpr input = case parse parseExpr "lisp" input of
-    Left err -> String $ "No match: " ++ show err
-    Right val -> val
+    Left err  -> throwError $ Parser err
+    Right val -> return val
 
 main :: IO ()
-main = getArgs >>= print . eval . readExpr . head
+main = do
+     args <- getArgs
+     evaled <- return $ liftM show $ readExpr (args !! 0) >>= eval
+     putStrLn $ extractValue $ trapError evaled
