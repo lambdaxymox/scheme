@@ -1,7 +1,6 @@
 module Scheme.Parser
     (
-        readExpr,
-        parseNumber,
+        parseExpr,
     )
     where
 
@@ -10,6 +9,17 @@ import System.Environment
 import Control.Monad
 import Numeric
 import Scheme.LispVal
+
+
+parseExpr :: Parser LispVal
+parseExpr =  parseAtom
+         <|> parseNumber 
+         <|> parseString
+         <|> parseQuoted
+         <|> do char '('
+                x <- try parseList <|> parseDottedList
+                char ')'
+                return x
 
 
 escapedChars :: String
@@ -27,26 +37,11 @@ nonEscapedChar = noneOf escapedChars
 escapedChar :: Parser Char
 escapedChar = oneOf escapedChars
 
-readExpr :: String -> String
-readExpr input = case parse parseExpr "lisp" input of
-    Left err  -> "No match: " ++ show err
-    Right val -> "Found value: " ++ show val
-
-parseExpr :: Parser LispVal
-parseExpr =  parseAtom
-         <|> parseNumber 
-         <|> parseString
-         <|> parseQuoted
-         <|> do char '('
-                x <- try parseList <|> parseDottedList
-                char ')'
-                return x
-
 parseString :: Parser LispVal
 parseString = do
-    char '\"'
+    char '"'
     x <- many (escapedChar <|> nonEscapedChar)
-    char '\"'
+    char '"'
     return $ String x
 
 parseAtom :: Parser LispVal
@@ -116,4 +111,3 @@ parseQuoted = do
     char '\''
     x <- parseExpr
     return $ List [Atom "quote", x]
-
