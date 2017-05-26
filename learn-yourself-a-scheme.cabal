@@ -16,7 +16,7 @@ executable             scheme
   main-is:             Main.hs
   -- other-modules:       
   -- other-extensions:
-  ghc-options:         -Wall -Wno-unused-do-bind
+  ghc-options:         -Wall -Wno-unused-do-bind -Wno-name-shadowing
   build-depends:       base >=4.9 && <4.10, 
                        mtl >=2.2 && <2.3, 
                        array >=0.5 && <0.6,
