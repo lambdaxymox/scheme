@@ -15,6 +15,7 @@ import Control.Monad.Except
 import Data.IORef
 import System.IO
 import Text.ParserCombinators.Parsec
+import Data.Array
 
 
 data LispVal = Atom String
@@ -23,6 +24,8 @@ data LispVal = Atom String
              | Number Integer
              | String String
              | Bool Bool
+             | Character Char
+             | Vector (Array Int LispVal)
              | PrimitiveFunc ([LispVal] -> ThrowsError LispVal)
              | Func { params :: [String], vararg :: (Maybe String), body :: [LispVal], closure :: Env }
              | IOFunc ([LispVal] -> IOThrowsError LispVal)

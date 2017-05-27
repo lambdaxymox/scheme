@@ -10,8 +10,9 @@ import Control.Monad
 import Numeric
 import Scheme.Env
 import Scheme.Types
+import Data.Array
 
-
+{-
 parseExpr :: Parser LispVal
 parseExpr =  parseAtom
          <|> parseNumber 
@@ -21,6 +22,23 @@ parseExpr =  parseAtom
                 x <- try parseList <|> parseDottedList
                 char ')'
                 return x
+-}
+parseExpr :: Parser LispVal
+parseExpr = parseAtom
+        <|> parseString
+        <|> parseNumber
+        <|> parseQuoted
+        <|> parseChar
+        <|> do char '('
+               x <- (try parseList) <|> parseDottedList
+               char ')'
+               return x
+        <|> parseQuasiQuoted
+        <|> parseUnQuote
+        <|> try (do string "#("
+                    x <- parseVector
+                    char ')'
+                    return x)
 
 
 escapedChars :: String
@@ -112,3 +130,41 @@ parseQuoted = do
     char '\''
     x <- parseExpr
     return $ List [Atom "quote", x]
+
+parseChar :: Parser LispVal
+parseChar = do 
+    try $ string "#\\"        
+    value <- try (string "newline" <|> string "space")
+             <|> do {x <- anyChar; notFollowedBy alphaNum; return [x]}
+    return $ Character $ case value of
+       "space"   -> ' '
+       "newline" -> '\n'
+       otherwise -> (value !! 0)
+
+{- Exercise 3.4.1
+   Add support for the backquote syntactic sugar: the Scheme standard details what
+   it should expand into (quasiquote/unquote). -}
+
+parseQuasiQuoted :: Parser LispVal
+parseQuasiQuoted = do
+    char '`'
+    x <- parseExpr
+    return $ List [Atom "quasiquote", x]
+
+parseUnQuote :: Parser LispVal
+parseUnQuote = do
+    char ','
+    x <- parseExpr
+    return $ List [Atom "unquote", x]
+
+{- Exercise 3.4.2
+   Add support for vectors. The Haskell representation is up to you: GHC does have
+   an Array data type, but it can be difficult to use. Strictly speaking, a vector 
+   should have constant-time indexing and updating, but destructive update in a 
+   purely functional language is difficult. You may have a better idea how to do
+   this after the section on set!, later in this tutorial. -}
+
+parseVector :: Parser LispVal
+parseVector = do 
+            arrayValues <- sepBy parseExpr skipSpaces
+            return $ Vector (listArray (0,(length arrayValues - 1)) arrayValues)
