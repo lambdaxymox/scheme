@@ -12,17 +12,7 @@ import Scheme.Env
 import Scheme.Types
 import Data.Array
 
-{-
-parseExpr :: Parser LispVal
-parseExpr =  parseAtom
-         <|> parseNumber 
-         <|> parseString
-         <|> parseQuoted
-         <|> do char '('
-                x <- try parseList <|> parseDottedList
-                char ')'
-                return x
--}
+
 parseExpr :: Parser LispVal
 parseExpr = parseAtom
         <|> parseString
