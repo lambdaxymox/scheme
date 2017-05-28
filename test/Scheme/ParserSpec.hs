@@ -54,18 +54,29 @@ spec = do
                 in  possibleInteger `shouldBe` Number (123456 :: Integer)
 
         context "When passed a number with a specified base" $ do
-            it "should parse to a correct binary number" $
+            it "should correctly parse a binary number" $
                 let possibleBinaryNumber = parseValue "#b011110001001000000" -- 123456
                 in  possibleBinaryNumber `shouldBe` Number 123456
 
-            it "should parse to a correct octal number" $
+            it "should correctly parse an octal number" $
                 let possibleOctalNumber = parseValue "#o0361100" --123456
                 in  possibleOctalNumber `shouldBe` Number 0o361100
 
-            it "should parse to a correct hexadecimal number" $
+            it "should correctly parse a hexadecimal number" $
                 let possibleHexNumber = parseValue "#x1E240" --123456
                 in  possibleHexNumber `shouldBe` Number 0x1E240
 
-            it "should parse to a correct deimal number" $
+            it "should correctly parse a decimal number" $
                 let possibleDecNumber = parseValue "#d123456"
                 in  possibleDecNumber `shouldBe` Number 123456
+            -- TODO: Add bad cases here.
+    describe "parseExpr String" $ do
+        context "When passed an ordinary string" $ do
+            it "should parse the string" $
+                let st = parseValue "This is a string."
+                in  st `shouldBe` String "This is a string."
+
+        context "When passed a string with escaped quotes" $ do
+            it "should include the quotes in the resulting string" $
+                let st = parseValue "\"This is a quoted string.\""
+                in  st `shouldBe` String "\"This is a quoted string.\""
