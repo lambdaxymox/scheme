@@ -31,6 +31,18 @@ data LispVal = Atom String
              | IOFunc ([LispVal] -> IOThrowsError LispVal)
              | Port Handle
 
+
+instance Eq LispVal where
+    Atom st1 == Atom st2 = st1 == st2
+    List l1 == List l2 = l1 == l2
+    DottedList l1 v1 == DottedList l2 v2 = v1 == v2 
+    Number num1 == Number num2 = num1 == num2
+    String st1 == String st2 = st1 == st2
+    Bool b1 == Bool b2 = b1 == b2
+    Character c1 == Character c2 = c1 == c2
+    Vector v1 == Vector v2 = v1 == v2
+    _ == _ = False
+
 instance Show LispVal where
     show (String contents) = "\"" ++ contents ++ "\""
     show (Atom name) = name

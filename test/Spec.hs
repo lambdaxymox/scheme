@@ -7,4 +7,4 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-    describe "Parser" ParserSpec.spec
+    describe "Parser" Scheme.ParserSpec.spec

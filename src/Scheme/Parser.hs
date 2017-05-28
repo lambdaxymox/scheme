@@ -53,7 +53,7 @@ parseString = do
     char '"'
     return $ String x
 
-parseAtom :: Parser LispVal
+parseAtom :: Parser LispVal 
 parseAtom = do 
     first <- letter <|> symbol
     rest  <- many (letter <|> digit <|> symbol)
@@ -90,7 +90,7 @@ binDigits :: Parser String
 binDigits = many1 binDigit
 
 numberPrefix :: Parser String
-numberPrefix = do -- char '#' >>= \ch1 -> oneOf "bodx" >>= \ch2 -> return [ch1,ch2]
+numberPrefix = do
     ch1 <- char '#'
     ch2 <- oneOf "bodx"
     return [ch1, ch2]
@@ -131,10 +131,6 @@ parseChar = do
        "newline" -> '\n'
        otherwise -> (value !! 0)
 
-{- Exercise 3.4.1
-   Add support for the backquote syntactic sugar: the Scheme standard details what
-   it should expand into (quasiquote/unquote). -}
-
 parseQuasiQuoted :: Parser LispVal
 parseQuasiQuoted = do
     char '`'
@@ -146,13 +142,6 @@ parseUnQuote = do
     char ','
     x <- parseExpr
     return $ List [Atom "unquote", x]
-
-{- Exercise 3.4.2
-   Add support for vectors. The Haskell representation is up to you: GHC does have
-   an Array data type, but it can be difficult to use. Strictly speaking, a vector 
-   should have constant-time indexing and updating, but destructive update in a 
-   purely functional language is difficult. You may have a better idea how to do
-   this after the section on set!, later in this tutorial. -}
 
 parseVector :: Parser LispVal
 parseVector = do 
