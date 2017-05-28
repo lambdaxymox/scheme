@@ -20,7 +20,7 @@ parseExpr = parseAtom
         <|> parseQuoted
         <|> parseChar
         <|> do char '('
-               x <- (try parseList) <|> parseDottedList
+               x <- try parseList <|> parseDottedList
                char ')'
                return x
         <|> parseQuasiQuoted
@@ -53,8 +53,8 @@ parseString = do
     char '"'
     return $ String x
 
-parseAtom :: Parser LispVal 
-parseAtom = do 
+parseAtom :: Parser LispVal
+parseAtom = do
     first <- letter <|> symbol
     rest  <- many (letter <|> digit <|> symbol)
     let atom = first:rest
@@ -67,11 +67,11 @@ parseNumber :: Parser LispVal
 parseNumber = do
     prefix <- numberPrefix <|> string ""
     case prefix of
-        ""   -> liftM (Number . read) decDigits
-        "#b" -> liftM (Number . fst . head . readBin) $ binDigits
-        "#o" -> liftM (Number . fst . head . readOct) $ octDigits
-        "#d" -> liftM (Number . read) decDigits
-        "#x" -> liftM (Number . fst . head . readHex) $ hexDigits
+        ""   -> Number . read <$> decDigits
+        "#b" -> Number . fst . head . readBin <$> binDigits
+        "#o" -> Number . fst . head . readOct <$> octDigits
+        "#d" -> Number . read <$> decDigits
+        "#x" -> Number . fst . head . readHex <$> hexDigits
             
 
 hexDigits :: Parser String
@@ -107,7 +107,7 @@ readBin = readInt 2 isBinaryDigit binConvert
         binConvert  _  = error "readBin failed."
 
 parseList :: Parser LispVal
-parseList = liftM List $ sepBy parseExpr skipSpaces
+parseList = List <$> sepBy parseExpr skipSpaces
 
 parseDottedList :: Parser LispVal
 parseDottedList = do
@@ -129,7 +129,7 @@ parseChar = do
     return $ Character $ case value of
        "space"   -> ' '
        "newline" -> '\n'
-       otherwise -> (value !! 0)
+       _         -> head value
 
 parseQuasiQuoted :: Parser LispVal
 parseQuasiQuoted = do
@@ -146,4 +146,4 @@ parseUnQuote = do
 parseVector :: Parser LispVal
 parseVector = do 
             arrayValues <- sepBy parseExpr skipSpaces
-            return $ Vector (listArray (0,(length arrayValues - 1)) arrayValues)
+            return $ Vector (listArray (0, length arrayValues - 1) arrayValues)
