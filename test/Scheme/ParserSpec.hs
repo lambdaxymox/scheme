@@ -73,10 +73,10 @@ spec = do
     describe "parseExpr String" $ do
         context "When passed an ordinary string" $ do
             it "should parse the string" $
-                let st = parseValue "This is a string."
+                let st = parseValue "\"This is a string.\""
                 in  st `shouldBe` String "This is a string."
 
         context "When passed a string with escaped quotes" $ do
             it "should include the quotes in the resulting string" $
-                let st = parseValue "\"This is a quoted string.\""
-                in  st `shouldBe` String "\"This is a quoted string.\""
+                let st = parseValue "\"This is a \\\"quoted\\\" string.\""
+                in  st `shouldBe` String "This is a \"quoted\" string."

@@ -14,7 +14,8 @@ import Data.Array
 
 
 parseExpr :: Parser LispVal
-parseExpr = parseAtom
+parseExpr = parseSharped
+        <|> parseAtom
         <|> parseString
         <|> parseNumber
         <|> parseQuoted
@@ -44,12 +45,20 @@ nonEscapedChar :: Parser Char
 nonEscapedChar = noneOf escapedChars
 
 escapedChar :: Parser Char
-escapedChar = oneOf escapedChars
+escapedChar = do 
+    char '\\'
+    escapeChar <- anyChar
+    return $ 
+        case escapeChar of
+            'n' -> '\n'
+            'r' -> '\r'
+            't' -> '\t'
+            _  -> escapeChar
 
 parseString :: Parser LispVal
 parseString = do
     char '"'
-    x <- many (escapedChar <|> nonEscapedChar)
+    x <- many (escapedChar <|> noneOf "\"")
     char '"'
     return $ String x
 
@@ -71,8 +80,7 @@ parseNumber = do
         "#b" -> Number . fst . head . readBin <$> binDigits
         "#o" -> Number . fst . head . readOct <$> octDigits
         "#d" -> Number . read <$> decDigits
-        "#x" -> Number . fst . head . readHex <$> hexDigits
-            
+        "#x" -> Number . fst . head . readHex <$> hexDigits           
 
 hexDigits :: Parser String
 hexDigits = many1 hexDigit
@@ -88,6 +96,12 @@ binDigit = oneOf "01"
 
 binDigits :: Parser String
 binDigits = many1 binDigit
+
+truthValue :: Parser String
+truthValue = do
+    ch1 <- char '#'
+    ch2 <- oneOf "tf"
+    return [ch1,ch2]
 
 numberPrefix :: Parser String
 numberPrefix = do
@@ -120,6 +134,17 @@ parseQuoted = do
     char '\''
     x <- parseExpr
     return $ List [Atom "quote", x]
+
+parseSharped :: Parser LispVal
+parseSharped = do
+    st <- lookAhead $ try truthValue <|> try numberPrefix
+    case st of
+        "#t" -> parseAtom
+        "#f" -> parseAtom
+        "#b" -> parseNumber
+        "#o" -> parseNumber
+        "#d" -> parseNumber
+        "#x" -> parseNumber
 
 parseChar :: Parser LispVal
 parseChar = do 
