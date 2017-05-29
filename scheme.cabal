@@ -45,6 +45,7 @@ test-suite             spec
   build-depends:       base >=4.9 && <4.10, 
                        hspec >=2.4.3,
                        parsec >=3.1.11,
+                       QuickCheck >=2.9,
                        scheme -any
   other-modules:       Scheme.ParserSpec
   default-language:    Haskell2010

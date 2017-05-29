@@ -1,10 +1,12 @@
 module Scheme.ParserSpec (main, spec) where
 
 import Test.Hspec
+import Test.QuickCheck
 import Scheme.Parser
 import Scheme.Types
 import Text.ParserCombinators.Parsec
 import Data.Maybe
+import Numeric
 
 
 right :: Either e a -> Maybe a
@@ -18,34 +20,33 @@ quotedVal val = List [Atom "quote", val]
 
 parseValue :: String -> LispVal
 parseValue st = onlyRight $ parse parseExpr "" st
-
+{-
 parseEither :: String -> Either e LispVal
 parseEither st = parse parseExpr "" st
-
+-}
 main :: IO ()
-main = hspec spec
+main = hspec $ do
+    describe "Unit Spec" spec
+    describe "QuickCheck Spec" quickSpec
 
 spec :: Spec
 spec = do 
-    describe "parseExpr Bool" $ do
-        context "When passed a boolean value false #f" $ do
-            it "should return true #f" $
+    describe "parseExpr" $ do
+        context "Bool" $ do
+            it "should return false with input \"#f\"" $
                 let possiblyFalse = parseValue "#f"
                 in  possiblyFalse `shouldBe` Bool False
 
-        context "When passed a boolean value true #t" $ do
-            it "should return false #t" $
+            it "should return true with input \"#t\"" $
                 let possiblyTrue = parseValue "#t"
                 in  possiblyTrue `shouldBe` Bool True
 
-        context "When passed a boolean value as a literal \'#t" $ do
-            it "should evaluate as a constant value #t" $
+            it "When passed a boolean literal \'#t" $
                 let possiblyTrue = parseValue "'#t"
                     quotedTrue   = quotedVal (Bool True)
                 in  possiblyTrue `shouldBe` quotedTrue
 
-        context "When passed a boolean value as a literal \'#f" $ do
-            it "should evaluate as a constant value #f" $
+            it "When passed a boolean literal \'#f" $
                 let possiblyFalse = parseValue "'#f"
                     quotedFalse   = quotedVal (Bool False)
                 in  possiblyFalse `shouldBe` quotedFalse
@@ -88,3 +89,50 @@ spec = do
             it "should parse a the string" $
                 let st = parseValue "\"This is a \\\"half-quoted string.\""
                 in  st `shouldBe` String "This is a \"half-quoted string."
+
+
+bases :: Gen LispBase
+bases = elements [Base2, Base8, Base10, Base16]
+
+showDec :: Integer -> String
+showDec = show
+
+showBin :: Integer -> String
+showBin num = showIntAtBase 2 conv num ""
+    where
+        conv :: Int -> Char
+        conv d = "01" !! d
+
+data LispBase = Base2 | Base8 | Base10 | Base16
+
+instance Show LispBase where
+    show Base2  = "#b"
+    show Base8  = "#o"
+    show Base10 = "#d"
+    show Base16 = "#x"
+
+data BasedNumber = MkBasedNumber { lispBase :: LispBase, lispNum :: Integer }
+
+instance Show BasedNumber where
+    show (MkBasedNumber Base2 num)  = show Base2  ++ showBin num
+    show (MkBasedNumber Base8 num)  = show Base8  ++ showOct num ""
+    show (MkBasedNumber Base10 num) = show Base10 ++ showDec num
+    show (MkBasedNumber Base16 num) = show Base16 ++ showHex num ""
+
+basedNumber :: Gen BasedNumber
+basedNumber = do
+    base <- bases
+    num  <- arbitrary
+    return $ MkBasedNumber base num
+
+instance Arbitrary BasedNumber where
+    arbitrary = basedNumber
+
+
+quickSpec :: Spec
+quickSpec = do
+    describe "parseExpr Number" $ do
+        context "When passed an integer in the correct base" $ do
+            it "should parse the string to the correct integer" $ 
+                property $ forAll basedNumber $ \bn -> 
+                    parseValue (show $ lispBase bn) === Number (lispNum bn)
