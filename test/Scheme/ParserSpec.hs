@@ -19,6 +19,9 @@ quotedVal val = List [Atom "quote", val]
 parseValue :: String -> LispVal
 parseValue st = onlyRight $ parse parseExpr "" st
 
+parseEither :: String -> Either e LispVal
+parseEither st = parse parseExpr "" st
+
 main :: IO ()
 main = hspec spec
 
@@ -51,7 +54,7 @@ spec = do
         context "When passed a decimal number" $ do
             it "should parse to a correct decimal integer" $
                 let possibleInteger = parseValue "123456"
-                in  possibleInteger `shouldBe` Number (123456 :: Integer)
+                in  possibleInteger `shouldBe` Number 123456
 
         context "When passed a number with a specified base" $ do
             it "should correctly parse a binary number" $
@@ -69,7 +72,7 @@ spec = do
             it "should correctly parse a decimal number" $
                 let possibleDecNumber = parseValue "#d123456"
                 in  possibleDecNumber `shouldBe` Number 123456
-            -- TODO: Add bad cases here.
+            
     describe "parseExpr String" $ do
         context "When passed an ordinary string" $ do
             it "should parse the string" $
@@ -80,3 +83,8 @@ spec = do
             it "should include the quotes in the resulting string" $
                 let st = parseValue "\"This is a \\\"quoted\\\" string.\""
                 in  st `shouldBe` String "This is a \"quoted\" string."
+
+        context "When pass a string with one escaped quote" $ do
+            it "should parse a the string" $
+                let st = parseValue "\"This is a \\\"half-quoted string.\""
+                in  st `shouldBe` String "This is a \"half-quoted string."
