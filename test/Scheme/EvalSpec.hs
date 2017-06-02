@@ -34,14 +34,21 @@ spec = do
         context "Bool" $ do
             it "Should evaluate a false boolean to false" $ do
                 env <- nullEnv
-                evalFalse <- onlyRight <$> runExceptT (eval env (Bool False))
+                evaledFalse <- onlyRight <$> runExceptT (eval env (Bool False))
                 let false = Bool False
-                evalFalse `shouldBe` false
+                evaledFalse `shouldBe` false
             
             it "Should evaluate a true boolean to true" $ do
                 env <- nullEnv
-                evalTrue <- onlyRight <$> runExceptT (eval env (Bool True))
+                evaledTrue <- onlyRight <$> runExceptT (eval env (Bool True))
                 let true = Bool True
-                evalTrue `shouldBe` true
-            
+                evaledTrue `shouldBe` true
+        
+        context "String" $ do
+            it "should evaluate a string as itself" $ do
+                env <- nullEnv
+                let st = String "This is a string."
+                evaledString <- onlyRight <$> runExceptT (eval env st)
+                evaledString `shouldBe` st
+
 --quickSpec :: Spec
