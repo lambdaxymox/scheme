@@ -96,7 +96,6 @@ spec = do
                 emptyString = String ""
             in  parsedString `shouldBe` emptyString
 
-
     describe "parseExpr Quoted" $ do
         it "should correctly parse a quoted name as a quoted atom." $ 
             let parsedName = parseValue "'abcdefg"
@@ -133,6 +132,13 @@ spec = do
             let parsedVec = parseValue "#()"
                 vec = Vector $ listArray (0,-1) []
             in  parsedVec `shouldBe` vec
+
+    describe "parseExpr" $ do
+        context "Character" $
+            it "should correctly parse individual character literals." $
+                let parsedChar = parseValue "#\\c"
+                    correctChar = Character 'c'
+                in  parsedChar `shouldBe` correctChar
 
 
 bases :: Gen LispBase
@@ -180,3 +186,9 @@ quickSpec = do
             it "should parse the string to the correct integer" $ 
                 property $ forAll basedNumber $ \bn -> 
                     parseValue (show $ lispBase bn) === Number (lispNum bn)
+
+    describe "parseExpr Character" $ do
+        context "When passed a character literal" $ do
+            it "should correctly parse to the correct R5RS character." $ property $ \ch ->
+                    let charString = "#\\" ++ show ch
+                    in  parseValue (charString) === Character ch
