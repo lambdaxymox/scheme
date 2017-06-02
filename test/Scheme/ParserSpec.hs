@@ -22,6 +22,10 @@ quotedVal val = List [Atom "quote", val]
 
 parseValue :: String -> LispVal
 parseValue st = onlyRight $ parse parseExpr "" st
+
+aNumber :: LispVal -> Bool
+aNumber (Number _) = True
+aNumber _          = False
 {-
 parseEither :: String -> Either e LispVal
 parseEither st = parse parseExpr "" st
@@ -80,6 +84,9 @@ spec = do
                 let parsedNumber = parse parseExpr "" "#dDEADBEEF"
                 in  parsedNumber `shouldSatisfy` isLeft
 
+            it "should not recognize a number in a nonsense base" $
+                let parsedNumber = parseValue "#zDEADBEER"
+                in  parsedNumber `shouldSatisfy` (not . aNumber)
             
     describe "parseExpr String" $ do
         context "When passed an ordinary string" $ do
