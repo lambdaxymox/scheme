@@ -7,6 +7,7 @@ import Scheme.Types
 import Text.ParserCombinators.Parsec
 import Data.Maybe
 import Data.Array
+import Data.Either
 import Numeric
 
 
@@ -74,6 +75,11 @@ spec = do
             it "should correctly parse a decimal number" $
                 let possibleDecNumber = parseValue "#d123456"
                 in  possibleDecNumber `shouldBe` Number 123456
+
+            it "should reject a number in the wrong base" $
+                let parsedNumber = parse parseExpr "" "#dDEADBEEF"
+                in  parsedNumber `shouldSatisfy` isLeft
+
             
     describe "parseExpr String" $ do
         context "When passed an ordinary string" $ do
@@ -133,6 +139,18 @@ spec = do
                 vec = Vector $ listArray (0,-1) []
             in  parsedVec `shouldBe` vec
 
+        it "should accept heterogeneous values in a vector." $
+            let parsedVec = parseValue "#(\"string\" #\\c 1 (1 2 3))"
+                arrayContents = [
+                        String "string", 
+                        Character 'c', 
+                        Number 1, 
+                        List [Number 1, Number 2, Number 3]
+                    ]
+                arr = listArray (0, length arrayContents -1) arrayContents
+                vec = Vector arr
+            in  parsedVec `shouldBe` vec
+
     describe "parseExpr" $ do
         context "Character" $
             it "should correctly parse individual character literals." $
@@ -189,6 +207,7 @@ quickSpec = do
 
     describe "parseExpr Character" $ do
         context "When passed a character literal" $ do
-            it "should correctly parse to the correct R5RS character." $ property $ \ch ->
+            it "should correctly parse to the correct R5RS character." $ 
+                property $ \ch ->
                     let charString = "#\\" ++ show ch
                     in  parseValue (charString) === Character ch
