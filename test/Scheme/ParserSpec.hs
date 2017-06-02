@@ -6,6 +6,7 @@ import Scheme.Parser
 import Scheme.Types
 import Text.ParserCombinators.Parsec
 import Data.Maybe
+import Data.Array
 import Numeric
 
 
@@ -89,6 +90,25 @@ spec = do
             it "should parse a the string" $
                 let st = parseValue "\"This is a \\\"half-quoted string.\""
                 in  st `shouldBe` String "This is a \"half-quoted string."
+
+    describe "parseExpr Quoted" $ do
+        it "should correctly parse a quoted name as a quoted atom." $ 
+            let parsedName = parseValue "'abcdefg"
+                quotedName = List [Atom "quote", Atom "abcdefg"]
+            in  parsedName `shouldBe` quotedName
+            
+        it "Should parse a list literal as a list." $
+            let parsedList = parseValue "'(a b c)"
+                listContents = List $ Atom <$> ["a", "b", "c"]
+                quotedList = List [Atom "quote", listContents]
+            in  parsedList `shouldBe` quotedList
+
+    describe "parseExpr Vector" $ do
+        it "should correctly parse a vector." $
+            let parsedVec = parseValue "#(1 2 3 4 5)"
+                arr = listArray (0, 4) (Number <$> [1,2,3,4,5])
+                vec = Vector arr
+            in  parsedVec `shouldBe` vec
 
 
 bases :: Gen LispBase
