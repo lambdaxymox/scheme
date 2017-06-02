@@ -96,17 +96,30 @@ spec = do
             let parsedName = parseValue "'abcdefg"
                 quotedName = List [Atom "quote", Atom "abcdefg"]
             in  parsedName `shouldBe` quotedName
-            
+
         it "Should parse a list literal as a list." $
             let parsedList = parseValue "'(a b c)"
                 listContents = List $ Atom <$> ["a", "b", "c"]
                 quotedList = List [Atom "quote", listContents]
             in  parsedList `shouldBe` quotedList
 
+        it "should not evaluate literal values in a list" $
+            let parsedList = parseValue "'(1 2 3 4 5)"
+                listContents = List $ Number <$> [1,2,3,4,5]
+                quotedList = List [Atom "quote", listContents]
+            in  parsedList `shouldBe` quotedList
+
     describe "parseExpr Vector" $ do
-        it "should correctly parse a vector." $
+        it "should correctly parse a vector of numbers." $
             let parsedVec = parseValue "#(1 2 3 4 5)"
                 arr = listArray (0, 4) (Number <$> [1,2,3,4,5])
+                vec = Vector arr
+            in  parsedVec `shouldBe` vec
+
+        it "should correctly parse a vector of strings." $
+            let parsedVec = parseValue "#(\"this\" \"is\" \"a\" \"vector\" \"of\" \"strings\")"
+                arrContents = String <$> ["this", "is", "a", "vector", "of", "strings"]
+                arr = listArray (0, 5) arrContents
                 vec = Vector arr
             in  parsedVec `shouldBe` vec
 
