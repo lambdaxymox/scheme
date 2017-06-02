@@ -64,10 +64,16 @@ spec = do
                 evaledNumber `shouldBe` num
 
         context "Atom" $ do
-            it "should fail when looking up a nonexistent variable name" $ do
+            it "should fail when looking up an unbound variable" $ do
                 env <- nullEnv
                 let ident = Atom "variableName"
                 evaledIdent <- onlyLeft <$> runExceptT (eval env ident)
                 evaledIdent `shouldSatisfy` unboundVar
+
+            it "should successfully look up a bound variable" $ do
+                env <- nullEnv
+                env <- bindVars env [("x", Number 256), ("y", String "Foo")]
+                evaled <- onlyRight <$> runExceptT (eval env (Atom "x"))
+                evaled `shouldBe` (Number 256)
 
 --quickSpec :: Spec
