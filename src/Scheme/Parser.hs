@@ -109,6 +109,9 @@ numberPrefix = do
 vectorPrefix :: Parser String
 vectorPrefix = string "#("
 
+charPrefix :: Parser String
+charPrefix = string "#\\"
+
 readBin :: ReadS Integer
 readBin = readInt 2 isBinaryDigit binConvert
     where
@@ -137,15 +140,19 @@ parseQuoted = do
 
 parseSharped :: Parser LispVal
 parseSharped = do
-    st <- lookAhead $ try truthValue <|> try numberPrefix <|> try vectorPrefix
+    st <- lookAhead $  try truthValue 
+                   <|> try numberPrefix 
+                   <|> try vectorPrefix
+                   <|> try charPrefix
     case st of
-        "#t" -> parseAtom
-        "#f" -> parseAtom
-        "#b" -> parseNumber
-        "#o" -> parseNumber
-        "#d" -> parseNumber
-        "#x" -> parseNumber
-        "#(" -> parseVector
+        "#t"  -> parseAtom
+        "#f"  -> parseAtom
+        "#b"  -> parseNumber
+        "#o"  -> parseNumber
+        "#d"  -> parseNumber
+        "#x"  -> parseNumber
+        "#("  -> parseVector
+        "#\\" -> parseChar
 
 parseChar :: Parser LispVal
 parseChar = do 
