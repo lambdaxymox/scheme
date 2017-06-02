@@ -33,7 +33,6 @@ eval env (List [Atom "set!", Atom var, form]) =
      eval env form >>= setVar env var
 eval env (List [Atom "define", Atom var, form]) = 
      eval env form >>= defineVar env var
---eval env (List (Atom func : args)) = mapM (eval env) args >>= liftThrows . apply func
 eval env (List (function : args)) = do
      func <- eval env function
      argVals <- mapM (eval env) args
