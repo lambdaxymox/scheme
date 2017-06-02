@@ -12,6 +12,7 @@ module Scheme.Types
 
 import Control.Monad
 import Control.Monad.Except
+import Control.Exception
 import Data.IORef
 import System.IO
 import Text.ParserCombinators.Parsec
@@ -82,11 +83,10 @@ instance Show LispError where
                                        ++ ", found " ++ show found
     show (Parser parseErr)             = "Parse error at " ++ show parseErr
 
-{-
-instance Error LispError where
-     noMsg = Default "An error has occurred"
-     strMsg = Default
--}
+
+instance Exception LispError where
+     toException e = SomeException e
+
 
 type ThrowsError = Either LispError
 

@@ -21,12 +21,17 @@ right = either (const Nothing) Just
 onlyRight :: Either e a -> a
 onlyRight = fromJust . right
 
+onlyLeft :: Either e a -> e
+onlyLeft (Left e) = e
+
+unboundVar :: Selector LispError
+unboundVar (UnboundVar _ _)  = True
+unboundVar _ = False
 
 main :: IO ()
 main = hspec $ do
     describe "Unit Spec" spec
     --describe "QuickCheck Spec" quickSpec
-
 
 spec :: Spec
 spec = do
@@ -57,5 +62,12 @@ spec = do
                 let num = Number 123456
                 evaledNumber <- onlyRight <$> runExceptT (eval env num)
                 evaledNumber `shouldBe` num
+
+        context "Atom" $ do
+            it "should fail when looking up a nonexistent variable name" $ do
+                env <- nullEnv
+                let ident = Atom "variableName"
+                evaledIdent <- onlyLeft <$> runExceptT (eval env ident)
+                evaledIdent `shouldSatisfy` unboundVar
 
 --quickSpec :: Spec
