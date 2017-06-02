@@ -26,10 +26,7 @@ parseExpr = parseSharped
                return x
         <|> parseQuasiQuoted
         <|> parseUnQuote
-        <|> try (do string "#("
-                    x <- parseVector
-                    char ')'
-                    return x)
+        <|> try parseVector
 
 
 escapedChars :: String
@@ -109,6 +106,9 @@ numberPrefix = do
     ch2 <- oneOf "bodx"
     return [ch1, ch2]
 
+vectorPrefix :: Parser String
+vectorPrefix = string "#("
+
 readBin :: ReadS Integer
 readBin = readInt 2 isBinaryDigit binConvert
     where
@@ -137,7 +137,7 @@ parseQuoted = do
 
 parseSharped :: Parser LispVal
 parseSharped = do
-    st <- lookAhead $ try truthValue <|> try numberPrefix
+    st <- lookAhead $ try truthValue <|> try numberPrefix <|> try vectorPrefix
     case st of
         "#t" -> parseAtom
         "#f" -> parseAtom
@@ -145,6 +145,7 @@ parseSharped = do
         "#o" -> parseNumber
         "#d" -> parseNumber
         "#x" -> parseNumber
+        "#(" -> parseVector
 
 parseChar :: Parser LispVal
 parseChar = do 
@@ -169,6 +170,13 @@ parseUnQuote = do
     return $ List [Atom "unquote", x]
 
 parseVector :: Parser LispVal
-parseVector = do 
-            arrayValues <- sepBy parseExpr skipSpaces
-            return $ Vector (listArray (0, length arrayValues - 1) arrayValues)
+parseVector = do
+    string "#("
+    vec <- parseVector'
+    char ')'
+    return vec
+
+parseVector' :: Parser LispVal
+parseVector' = do 
+    arrayValues <- sepBy parseExpr skipSpaces
+    return $ Vector (listArray (0, length arrayValues - 1) arrayValues)
