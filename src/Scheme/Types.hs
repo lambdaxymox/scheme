@@ -51,6 +51,8 @@ instance Show LispVal where
     show (Bool False) = "#f"
     show (List contents) = "(" ++ unwordsList contents ++ ")"
     show (DottedList head tail) = "(" ++ unwordsList head ++ " . " ++ show tail ++ ")"
+    show (Character ch) = "\'" ++ show ch ++ "\'"
+    show (Vector contents) = "#(" ++ show contents ++ ")"
     show (PrimitiveFunc _) = "<primitive>"
     show (Func {params = args, vararg = varargs, body = body, closure = env}) =
         "(lambda (" ++ unwords (map show args) ++
