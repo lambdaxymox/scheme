@@ -68,32 +68,36 @@ apply (IOFunc func) args = func args
 
 
 primitives :: [(String, [LispVal] -> ThrowsError LispVal)]
-primitives = [("+", numericBinop (+)),
-              ("-", numericBinop (-)),
-              ("*", numericBinop (*)),
-              ("/", numericBinop div),
-              ("=", numBoolBinop (==)),
-              ("<", numBoolBinop (<)),
-              (">", numBoolBinop (>)),
-              ("/=", numBoolBinop (/=)),
-              (">=", numBoolBinop (>=)),
-              ("<=", numBoolBinop (<=)),
-              ("&&", boolBoolBinop (&&)),
-              ("||", boolBoolBinop (||)),
-              ("string=?", strBoolBinop (==)),
-              ("string<?", strBoolBinop (<)),
-              ("string>?", strBoolBinop (>)),
-              ("string<=?", strBoolBinop (<=)),
-              ("string>=?", strBoolBinop (>=)),
-              ("mod", numericBinop mod),
-              ("quotient", numericBinop quot),
-              ("remainder", numericBinop rem),
-              ("car", car),
-              ("cdr", cdr),
-              ("cons", cons),
-              ("eq?", eqv),
-              ("eqv?", eqv),
-              ("equal?", equal)]
+primitives = [
+        ("+", numericBinop (+)),
+        ("-", numericBinop (-)),
+        ("*", numericBinop (*)),
+        ("/", numericBinop div),
+        ("=", numBoolBinop (==)),
+        ("<", numBoolBinop (<)),
+        (">", numBoolBinop (>)),
+        ("/=", numBoolBinop (/=)),
+        (">=", numBoolBinop (>=)),
+        ("<=", numBoolBinop (<=)),
+        ("&&", boolBoolBinop (&&)),
+        ("||", boolBoolBinop (||)),
+        ("string=?", strBoolBinop (==)),
+        ("string<?", strBoolBinop (<)),
+        ("string>?", strBoolBinop (>)),
+        ("string<=?", strBoolBinop (<=)),
+        ("string>=?", strBoolBinop (>=)),
+        ("mod", numericBinop mod),
+        ("modulo", numericBinop mod),
+        ("quotient", numericBinop quot),
+        ("remainder", numericBinop rem),
+        ("car", car),
+        ("cdr", cdr),
+        ("cons", cons),
+        ("eq?", eqv),
+        ("eqv?", eqv),
+        ("equal?", equal),
+        ("pair?", pair)
+    ]
 
 
 numericBinop :: (Integer -> Integer -> Integer) -> [LispVal] -> ThrowsError LispVal
@@ -194,6 +198,16 @@ equal [arg1, arg2] = do
 equal badArgList = throwError $ NumArgs 2 badArgList
 
 
+pair :: [LispVal] -> ThrowsError LispVal
+pair [List []]                    = return $ Bool False
+pair [DottedList [] _]            = return $ Bool False
+pair [List (head : [])]           = return $ Bool False
+pair [List (head : tail)]         = return $ Bool True
+pair [DottedList (head : _) term] = return $ Bool True
+--pair badArgList = throwError $ NumArgs 1 badArgList
+pair _                            = return $ Bool False
+
+
 makeFunc :: Monad m => Maybe String 
                     -> Env 
                     -> [LispVal] 
@@ -211,15 +225,17 @@ makeVarArgs :: LispVal -> Env
 makeVarArgs = makeFunc . Just . show
 
 ioPrimitives :: [(String, [LispVal] -> IOThrowsError LispVal)]
-ioPrimitives = [("apply", applyProc),
-                ("open-input-file", makePort ReadMode),
-                ("open-output-file", makePort WriteMode),
-                ("close-input-port", closePort),
-                ("close-output-port", closePort),
-                ("read", readProc),
-                ("write", writeProc),
-                ("read-contents", readContents),
-                ("read-all", readAll)]
+ioPrimitives = [
+        ("apply", applyProc),
+        ("open-input-file", makePort ReadMode),
+        ("open-output-file", makePort WriteMode),
+        ("close-input-port", closePort),
+        ("close-output-port", closePort),
+        ("read", readProc),
+        ("write", writeProc),
+        ("read-contents", readContents),
+        ("read-all", readAll)
+    ]
 
 applyProc :: [LispVal] -> IOThrowsError LispVal
 applyProc [func, List args] = apply func args
@@ -257,7 +273,7 @@ readOrThrow parser input = case parse parser "lisp" input of
 readExpr :: String -> ThrowsError LispVal
 readExpr = readOrThrow parseExpr
 
-readExprList :: String -> ThrowsError LispVal
+readExprList :: String -> ThrowsError [LispVal]
 readExprList = readOrThrow (endBy parseExpr spaces)
 
 evalString :: Env -> String -> IO String
