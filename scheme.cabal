@@ -33,7 +33,9 @@ library
                        array >=0.5 && <0.6,
                        parsec >=3.1.11
   exposed-modules:     Scheme.Types,
-                       Scheme.Parser
+                       Scheme.Parser,
+                       Scheme.Eval,
+                       Scheme.Env
   default-language:    Haskell2010
 
 
@@ -42,7 +44,8 @@ test-suite             spec
   main-is:             Spec.hs
   hs-source-dirs:      test
   ghc-options:         -Wall
-  build-depends:       base >=4.9 && <4.10, 
+  build-depends:       base >=4.9 && <4.10,
+                       mtl >=2.2 && <2.3,
                        hspec >=2.4.3,
                        array >=0.5 && <0.6,
                        parsec >=3.1.11,

@@ -204,7 +204,6 @@ pair [DottedList [] _]            = return $ Bool False
 pair [List (head : [])]           = return $ Bool False
 pair [List (head : tail)]         = return $ Bool True
 pair [DottedList (head : _) term] = return $ Bool True
---pair badArgList = throwError $ NumArgs 1 badArgList
 pair _                            = return $ Bool False
 
 

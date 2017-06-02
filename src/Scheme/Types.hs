@@ -70,6 +70,7 @@ data LispError = NumArgs Integer [LispVal]
                | NotFunction String String
                | UnboundVar String String
                | Default String
+               deriving(Eq)
 
 instance Show LispError where
     show (UnboundVar message varname)  = message ++ ": " ++ varname
@@ -80,7 +81,6 @@ instance Show LispError where
     show (TypeMismatch expected found) = "Invalid type: expected " ++ expected
                                        ++ ", found " ++ show found
     show (Parser parseErr)             = "Parse error at " ++ show parseErr
-
 
 {-
 instance Error LispError where

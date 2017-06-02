@@ -1,4 +1,4 @@
-module Scheme.ParserSpec (main, spec) where
+module Scheme.ParserSpec (main, spec, quickSpec) where
 
 import Test.Hspec
 import Test.QuickCheck
@@ -197,7 +197,7 @@ instance Show BasedNumber where
 basedNumber :: Gen BasedNumber
 basedNumber = do
     base <- bases
-    num  <- arbitrary
+    num  <- abs <$> arbitrary
     return $ MkBasedNumber base num
 
 instance Arbitrary BasedNumber where
@@ -210,7 +210,7 @@ quickSpec = do
         context "When passed an integer in the correct base" $ do
             it "should parse the string to the correct integer" $ 
                 property $ forAll basedNumber $ \bn -> 
-                    parseValue (show $ lispBase bn) === Number (lispNum bn)
+                    parseValue (show bn) === Number (lispNum bn)
 
     describe "parseExpr Character" $ do
         context "When passed a character literal" $ do
