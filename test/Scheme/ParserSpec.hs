@@ -216,5 +216,5 @@ quickSpec = do
         context "When passed a character literal" $ do
             it "should correctly parse to the correct R5RS character." $ 
                 property $ \ch ->
-                    let charString = "#\\" ++ show ch
+                    let charString = "#\\" ++ [ch]
                     in  parseValue (charString) === Character ch
