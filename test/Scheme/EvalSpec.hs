@@ -51,4 +51,11 @@ spec = do
                 evaledString <- onlyRight <$> runExceptT (eval env st)
                 evaledString `shouldBe` st
 
+        context "Number" $ do
+            it "should evaluate a number as itself" $ do
+                env <- nullEnv
+                let num = Number 123456
+                evaledNumber <- onlyRight <$> runExceptT (eval env num)
+                evaledNumber `shouldBe` num
+
 --quickSpec :: Spec
