@@ -91,6 +91,12 @@ spec = do
                 let st = parseValue "\"This is a \\\"half-quoted string.\""
                 in  st `shouldBe` String "This is a \"half-quoted string."
 
+        it "Should correctly parse an empty string." $ 
+            let parsedString = parseValue "\"\""
+                emptyString = String ""
+            in  parsedString `shouldBe` emptyString
+
+
     describe "parseExpr Quoted" $ do
         it "should correctly parse a quoted name as a quoted atom." $ 
             let parsedName = parseValue "'abcdefg"
@@ -121,6 +127,11 @@ spec = do
                 arrContents = String <$> ["this", "is", "a", "vector", "of", "strings"]
                 arr = listArray (0, 5) arrContents
                 vec = Vector arr
+            in  parsedVec `shouldBe` vec
+
+        it "should correctly parse an empty vector." $
+            let parsedVec = parseValue "#()"
+                vec = Vector $ listArray (0,-1) []
             in  parsedVec `shouldBe` vec
 
 
