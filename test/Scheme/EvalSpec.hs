@@ -5,14 +5,8 @@ import Test.QuickCheck
 import Scheme.Eval
 import Scheme.Env
 import Scheme.Types
-import Text.ParserCombinators.Parsec
-import System.IO.Unsafe
 import Data.Maybe
-import Data.Array
-import Data.Either
-import Control.Monad
 import Control.Monad.Except
-import Numeric
 
 
 right :: Either e a -> Maybe a
@@ -76,4 +70,11 @@ spec = do
                 evaled <- onlyRight <$> runExceptT (eval env (Atom "x"))
                 evaled `shouldBe` (Number 256)
 
+        context "List" $ do
+            it "should extract a quoted value" $ do
+                env <- nullEnv
+                let list = List [Number 1, Number 2, Number 3, Number 4, Number 5]
+                    quotedList = List [Atom "quote", list]
+                evaledList <- onlyRight <$> runExceptT (eval env quotedList)
+                evaledList `shouldBe` list
 --quickSpec :: Spec
