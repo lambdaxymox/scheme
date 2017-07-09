@@ -2,8 +2,8 @@ name:                scheme
 version:             0.1.0.0
 synopsis:            A Scheme interpreter written in Haskell.            
 -- description:         
-license:             BSD3
-license-file:        LICENSE
+license:             Apache-2.0
+license-file:        LICENSE-APACHE
 author:              Stallmanifold
 maintainer:          stallmanifold@gmail.com
 -- copyright:           

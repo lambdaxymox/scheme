@@ -26,10 +26,7 @@ parseValue st = onlyRight $ parse parseExpr "" st
 aNumber :: LispVal -> Bool
 aNumber (Number _) = True
 aNumber _          = False
-{-
-parseEither :: String -> Either e LispVal
-parseEither st = parse parseExpr "" st
--}
+
 main :: IO ()
 main = hspec $ do
     describe "Unit Spec" spec
