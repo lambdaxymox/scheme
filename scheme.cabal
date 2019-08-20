@@ -4,8 +4,8 @@ synopsis:            A Scheme interpreter written in Haskell.
 -- description:         
 license:             Apache-2.0
 license-file:        LICENSE-APACHE
-author:              Stallmanifold
-maintainer:          stallmanifold@gmail.com
+author:              LambdaXymox
+maintainer:          lambda.xymox@gmail.com
 -- copyright:           
 -- category:            
 build-type:          Simple
